@@ -25,7 +25,7 @@ export const CippAutopilotStatusPageDrawer = ({
       OBEEOnly: false,
       blockDevice: true,
       AllowReset: true,
-      AllowFail: false,
+      AllowFail: true,
       InstallWindowsUpdates: true,
     },
   });
