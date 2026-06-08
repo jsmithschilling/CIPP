@@ -15,12 +15,19 @@ export const getCippColumnSize = (accessorKey, header) => {
   switch (accessorKey) {
     case 'alignmentScore':
     case 'combinedAlignmentScore':
+    case 'compliancePercentage':
+    case 'complianceScore':
     case 'LicenseMissingPercentage':
     case 'ScorePercentage':
       return { size: 250, minSize: 250 }
 
     // Columns that render as small icons or compact elements
     case 'info.logoUrl':
+      return { size: 'header', minSize: 'header' }
+
+    // String arrays that named handlers transform into CippDataTableButton
+    // ("X items" button) — don't measure the raw text.
+    case 'proxyAddresses':
       return { size: 'header', minSize: 'header' }
 
     default:
