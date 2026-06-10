@@ -11,6 +11,7 @@ export const CippAlertsStep = (props) => {
   ];
 
   const recurrenceOptions = [
+    { value: "15m", label: "Every 15 minutes" },
     { value: "30m", label: "Every 30 minutes" },
     { value: "1h", label: "Every hour" },
     { value: "4h", label: "Every 4 hours" },

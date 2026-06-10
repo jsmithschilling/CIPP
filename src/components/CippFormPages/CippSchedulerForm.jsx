@@ -98,6 +98,11 @@ const CippSchedulerForm = (props) => {
 
   const recurrenceOptions = [
     { value: "0", label: "Once" },
+    { value: "15m", label: "Every 15 minutes" },
+    { value: "30m", label: "Every 30 minutes" },
+    { value: "1h", label: "Every 1 hour" },
+    { value: "4h", label: "Every 4 hours" },
+    { value: "12h", label: "Every 12 hours" },
     { value: "1d", label: "Every 1 day" },
     { value: "7d", label: "Every 7 days" },
     { value: "14d", label: "Every 14 days" },
