@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "next -H 127.0.0.1",
-    "build": "node scripts/skip-export-build-traces.mjs && next build --webpack && rm -rf package.json yarn.lock",
+    "build": "node scripts/skip-export-build-traces.mjs && next build --webpack && node scripts/bundle-intune-definitions.mjs && rm -rf package.json yarn.lock",
     "start": "next start",
     "export": "next export",
     "lint": "npx eslint .",

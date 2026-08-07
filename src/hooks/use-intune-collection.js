@@ -25,7 +25,7 @@ const cache = new Map()
 // Requests in flight, so two components mounting at once ask for a shared id only once.
 const inFlight = new Map()
 
-const pathForId = async (id) => {
+const hashForId = async (id) => {
   const digest = await crypto.subtle.digest(
     'SHA-256',
     new TextEncoder().encode(id)
@@ -34,7 +34,36 @@ const pathForId = async (id) => {
   for (const byte of new Uint8Array(digest, 0, 8)) {
     hash += byte.toString(16).padStart(2, '0')
   }
-  return `${DEFINITION_ROOT}/${hash.slice(0, 2)}/${hash}.json`
+  return hash
+}
+
+// scripts/bundle-intune-definitions.mjs collapses each two-character prefix directory into a
+// single <prefix>.json keyed by definition hash, because Azure Static Web Apps refuses any
+// deployment over 15,000 files and the unbundled catalog is ~18,200 on its own. One bundle is
+// ~70KB, so a policy still pulls far less than the whole catalog, and each bundle is fetched
+// once per tab however many of its definitions get asked for.
+const bundles = new Map()
+
+const fetchBundle = (prefix) => {
+  let request = bundles.get(prefix)
+  if (!request) {
+    request = fetch(`${DEFINITION_ROOT}/${prefix}.json`)
+      .then((response) => {
+        // A missing bundle means no definition in it is available; treat it as empty so the
+        // screen falls back to raw ids rather than failing.
+        if (response.status === 404) return {}
+        if (!response.ok) {
+          throw new Error(`${DEFINITION_ROOT} HTTP ${response.status}`)
+        }
+        return response.json()
+      })
+      .catch((error) => {
+        bundles.delete(prefix)
+        throw error
+      })
+    bundles.set(prefix, request)
+  }
+  return request
 }
 
 const fetchDefinition = (id) => {
@@ -42,17 +71,16 @@ const fetchDefinition = (id) => {
 
   let request = inFlight.get(id)
   if (!request) {
-    request = pathForId(id)
-      .then((path) => fetch(path))
-      .then((response) => {
-        // A 404 is a setting Intune has since retired, not a failure: the screen falls back to
-        // showing the raw definition id. Caching the miss stops it being asked for again.
-        if (response.status === 404) return null
-        if (!response.ok) {
-          throw new Error(`${DEFINITION_ROOT} HTTP ${response.status}`)
-        }
-        return response.json()
-      })
+    request = hashForId(id)
+      .then((hash) =>
+        fetchBundle(hash.slice(0, 2)).then((bundle) => {
+          // An absent hash is a setting Intune has since retired, not a failure: the screen
+          // falls back to showing the raw definition id. Caching the miss stops it being asked
+          // for again.
+          const definition = bundle[hash]
+          return definition === undefined ? null : definition
+        })
+      )
       .then((definition) => {
         cache.set(id, definition)
         inFlight.delete(id)
