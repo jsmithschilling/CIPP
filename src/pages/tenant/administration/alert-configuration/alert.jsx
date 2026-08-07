@@ -166,7 +166,11 @@ const AlertWizard = () => {
       if (alert?.LogType === 'Scripted') {
         setAlertType('script')
         const excludedTenantsFormatted = Array.isArray(alert.excludedTenants)
-          ? alert.excludedTenants.map((tenant) => ({ value: tenant, label: tenant }))
+          ? alert.excludedTenants.map((tenant) =>
+              typeof tenant === 'object' && tenant !== null
+                ? tenant
+                : { value: tenant, label: tenant }
+            )
           : []
         const usedCommand = alertList?.find(
           (cmd) => cmd.name === alert.RawAlert.Command.replace('Get-CIPPAlert', '')
@@ -656,7 +660,7 @@ const AlertWizard = () => {
                                 label="Excluded Tenants for alert"
                                 formControl={formControl}
                                 allTenants={false}
-                                includeGroups={false}
+                                includeGroups={true}
                                 name="excludedTenants"
                                 helperText="Optional. Tenants selected here are skipped even if they fall within the included tenants or group."
                               />
@@ -966,7 +970,7 @@ const AlertWizard = () => {
                                 label="Excluded Tenants for alert"
                                 formControl={formControl}
                                 allTenants={false}
-                                includeGroups={false}
+                                includeGroups={true}
                                 name="excludedTenants"
                                 helperText="Optional. Tenants selected here are skipped even if they fall within the included tenants or group."
                               />
